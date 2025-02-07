@@ -60,7 +60,9 @@ class TCPServer:
         return self.shutdown_command()
 
     def handle_bc(self, parts: list) -> str:
-        return f"BC {self.handle_bank_code()}"
+        """Return bank code information (here, the server IP)."""
+        return "BC "+ self.server_ip
+
 
     def handle_account_create(self, parts: list) -> str:
         """
@@ -85,8 +87,7 @@ class TCPServer:
                     "account_number/ip_address amount")
         valid, account_info = self.parse_account_number(parts[1])
         if not valid:
-            return ("Error: Invalid account string format. Expected format: "
-                    "number/ip_address")
+            return ("Error: Invalid account string format. Expected format: number/ip_address")
         try:
             amount = int(parts[2])
             if amount <= 0:
@@ -96,7 +97,7 @@ class TCPServer:
         manager = AccountManager(bank_code=account_info["bank_code"], account_number=account_info["account_number"], balance=amount)
         manager.update()
 
-        return (f"AD")
+        return "AD"
 
     def handle_account_withdrawal(self, parts: list) -> str:
         """Perform withdrawal operation via the AccountManager."""
@@ -114,8 +115,7 @@ class TCPServer:
         except ValueError:
             return "Error: Invalid amount format."
 
-        current_balance = self.handle_account_balance(account_info["bank_code"],
-                                                      account_info["account_number"])
+        current_balance = self.handle_account_balance(account_info["bank_code"],account_info["account_number"])
 
         if amount <= current_balance:
             new_balance = amount - current_balance
@@ -198,12 +198,7 @@ class TCPServer:
         return "BA "+str(AccountManager.find_balance(self.server_ip))
 
     def handle_bank_number(self, parts: list) -> str:
-
         return "BN "+ str(AccountManager.all())
-
-    def handle_bank_code(self) -> str:
-        """Return bank code information (here, the server IP)."""
-        return self.server_ip
 
 
     def parse_account_number(self,account_str: str) -> Tuple[bool, Optional[dict]]:
