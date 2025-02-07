@@ -1,109 +1,364 @@
+
 # P2P Banking System
 
-A peer-to-peer banking system enabling basic banking operations via a TCP server. Supports account management, deposits, withdrawals, balance checks, and bank-wide queries.
+## Overview
 
-## Features
+This project implements a simple P2P banking system using Python. It includes a TCP server that listens for client connections and processes banking-related commands. The system supports account creation, deposit, withdrawal, balance inquiry, and account removal. It also provides basic bank information and logging capabilities.
 
-- **Account Management**:
-  - `AC`: Create a new account.
-  - `AR`: Remove an account (if balance is zero).
-- **Transactions**:
-  - `AD [account]/[ip] [amount]`: Deposit funds.
-  - `AW [account]/[ip] [amount]`: Withdraw funds.
-- **Queries**:
-  - `AB [account]/[ip]`: Check account balance.
-  - `BA`: Total balance across all accounts in the bank.
-  - `BN`: Total number of accounts in the bank.
-- **Utilities**:
-  - `DATE`: Get server date and time.
-  - `HELP`: List available commands.
-  - `BC`: Retrieve the bank code (server IP).
+## File Structure
 
-## Installation
+```
+.
+├── config
+│   ├── config.py
+│   └── config.yaml
+├── src
+│   ├── commands
+│   │   └── accountManager.py
+│   ├── database
+│   │   └── database.py
+│   └── server.py
+└── main.py
+├── utils
+│   
+└── README.md
+```
 
-1. **Prerequisites**:
-   - MySQL Server.
-   - Python 3.8+.
-   - Required packages:  
-     ```bash
-     pip install mysql-connector-python PyYAML
-     ```
+*   `config/config.py`: Defines the `Config` class for loading configuration settings from the `config.yaml` file.
+*   `config/config.yaml`: YAML file containing configuration parameters for the application, such as database credentials, server IP, port, and logging settings.
+*   `src/commands/accountManager.py`: Implements the `AccountManager` class, which handles database interactions for managing bank accounts.
+*   `src/database/database.py`: Defines the `Database` class for managing the MySQL database connection.
+*   `src/server.py`: Contains the `TCPServer` class, which handles client connections, receives commands, and processes them using the `AccountManager`.
+*   `src/main.py`: The main entry point of the application, responsible for initializing the server and starting the main event loop.
+*   `utils/logging_config.py`: Provides the `setup_logging` function for configuring the application's logging.
+*   `README.md`: Provides an overview of the project.
 
-2. **Database Setup**:
-   - Run the SQL script to create the database and table:  
-     ```bash
-     mysql -u [user] -p < Alpha3.sql
-     ```
+## Configuration
 
-3. **Configuration**:
-   - Create `config/config.yaml` with the following structure:  
-     ```yaml
-     ip: "127.0.0.1"  # Server IP
-     port: 12345       # Server port
-     client_timeout: 30
-     logging_level: "INFO"
-     logging_file: "logs/app.log"
-     # Database settings
-     host: "localhost"
-     user: "your_db_user"
-     password: "your_db_password"
-     database: "p2p_bank"
-     ```
+The application uses a `config.yaml` file to store configuration settings. Here's an example of the configuration file:
+
+```yaml
+bank:
+  ip: "10.147.18.126"
+  port: "65525"
+  timeout: "5"
+
+db:
+  host: "localhost"
+  user: "root"
+  password: ""
+  database: "p2p_bank"
+
+logging:
+  level: "INFO"
+  file: "app.log"
+```
+
+*   `bank`: Contains settings related to the TCP server, such as the IP address, port, and client timeout.
+*   `db`: Contains database connection settings, such as the host, user, password, and database name.
+*   `logging`: Configures the logging level and file path.
+
+## Dependencies
+
+The project uses the following Python libraries:
+
+*   `logging`: For logging application events.
+*   `re`: For regular expressions, used in input validation.
+*   `socket`: For network communication.
+*   `datetime`: For handling date and time.
+*   `multiprocessing`: For handling multiple client connections concurrently.
+*   `typing`: For type hinting.
+*   `mysql.connector`: For connecting to the MySQL database.
+*   `yaml`: For parsing the YAML configuration file.
+
+You can install the dependencies using pip:
+
+```bash
+pip install mysql-connector-python pyyaml
+```
+
+## Setup
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone [repository_url]
+    cd [repository_directory]
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    pip install mysql-connector-python pyyaml
+    ```
+
+3.  **Configure the database:**
+
+    *   Create a MySQL database named `p2p_bank`.
+    *   Update the database credentials in `config/config.yaml`.
+    *   Run the SQL script to create the `accounts` table:
+
+        ```sql
+        -- Vytvoření databáze pro P2P bankovní systém
+        CREATE DATABASE IF NOT EXISTS p2p_bank;
+        USE p2p_bank;
+
+        -- Tabulka pro bankovní účty
+        CREATE TABLE IF NOT EXISTS accounts (
+          account_number INT NOT NULL AUTO_INCREMENT,   -- will auto-generate value
+          bank_code      VARCHAR(15) NOT NULL,
+          balance        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+          created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (account_number)
+        ) AUTO_INCREMENT = 10000;
+        ```
+
+4.  **Configure the server:**
+
+    *   Update the server IP and port in `config/config.yaml`.
+
+## Running the Server
+
+To start the server, execute the `src/main.py` script:
+
+```bash
+python src/main.py
+```
+
+The server will listen for incoming connections on the configured IP address and port.
 
 ## Usage
 
-1. **Start the Server**:
-   ```bash
-   python main.py
-Connect via TCP Client (e.g., telnet):
+Once the server is running, clients can connect to it and send commands to perform banking operations. The following commands are supported:
 
-bash
-Copy
-telnet 127.0.0.1 12345
-Example Commands:
+*   `DATE`: Returns the current date and time.
+*   `HELP`: Returns a list of available commands.
+*   `BC`: Returns the bank code (server IP).
+*   `AC`: Creates a new account and returns the account number and bank code.
+*   `AD account_number/ip_address amount`: Deposits the specified amount into the account.
+*   `AW account_number/ip_address amount`: Withdraws the specified amount from the account.
+*   `AB account_number/ip_address`: Returns the account balance.
+*   `AR account_number/ip_address`: Removes the account.
+*   `BA`: Returns the total amount of money in the bank.
+*   `BN`: Returns the number of accounts in the bank.
 
-Create account:
-AC → Returns AC 10001/127.0.0.1
+## Logging
 
-Deposit 500 units:
-AD 10001/127.0.0.1 500 → Returns AD
+The application uses the `logging` module to log events to a file. The logging level and file path can be configured in the `config.yaml` file.
 
-Check balance:
-AB 10001/127.0.0.1 → Returns AB 500
+## Error Handling
 
-Withdraw 200 units:
-AW 10001/127.0.0.1 200 → Returns AW
+The application includes error handling to catch exceptions and log error messages. This helps in debugging and maintaining the system.
 
-Database Schema
-Table accounts:
+## Future Enhancements
 
-Column	Type	Description
-account_number	INT	Auto-incremented (starts at 10000)
-bank_code	VARCHAR(15)	Bank identifier (server IP)
-balance	BIGINT	Stored in cents (e.g., 100 = $1)
-created_at	TIMESTAMP	Account creation time
-updated_at	TIMESTAMP	Last update time
-Logging
-Logs are stored in logs/app.log (rotates after 5 MB, keeps 3 backups).
+*   Implement more robust error handling and input validation.
+*   Add support for user authentication and authorization.
+*   Implement transaction logging and auditing.
+*   Add a graphical user interface (GUI) for clients.
+*   Implement unit tests to ensure code quality.
 
-Logging level can be adjusted in config.yaml (DEBUG, INFO, WARNING, ERROR).
+## Author
 
-Notes
-Account Format: [account_number]/[bank_ip] (e.g., 10001/127.0.0.1).
+Tadeas
+```
 
-Validation:
+I've included sections for:
 
-Account numbers range: 10000–99999.
+*   **Overview:** A brief description of the project.
+*   **File Structure:**  A breakdown of the important files and their roles.
+*   **Configuration:** Explains the `config.yaml` and its settings.
+*   **Dependencies:** Lists the required Python packages.
+*   **Setup:** Step-by-step instructions for setting up the project.
+*   **Running the Server:**  How to start the server.
+*   **Usage:**  Explains the available commands.
+*   **Logging:**  Describes the logging functionality.
+*   **Error Handling:** Mentions the error handling in the application.
+*   **Future Enhancements:** Ideas for improving the project.
+*   **Author:** Your name.
 
-Withdrawals fail if amount exceeds balance.
+This `README.md` should give anyone a good starting point for understanding and using your P2P banking system. Let me know if you'd like me to make any changes or add more details!
+Okay, Tadeas, I'll generate a `README.md` file based on the Python files you've provided. This README will give a good overview of your P2P banking system project.
 
-Account deletion requires zero balance.
+```markdown
+# P2P Banking System
 
-Assumptions:
+## Overview
 
-Balances are stored as integers (avoid floating-point inaccuracies).
+This project implements a simple P2P banking system using Python. It includes a TCP server that listens for client connections and processes banking-related commands. The system supports account creation, deposit, withdrawal, balance inquiry, and account removal. It also provides basic bank information and logging capabilities.
 
-Bank code is the server’s IP address for simplicity.
+## File Structure
 
-License
-MIT License. See LICENSE for details.
+```
+.
+├── config
+│   ├── config.py
+│   └── config.yaml
+├── src
+│   ├── commands
+│   │   └── accountManager.py
+│   ├── database
+│   │   └── database.py
+│   ├── server.py
+│   └── main.py
+├── utils
+│   └── logging_config.py
+└── README.md
+```
+
+*   `config/config.py`: Defines the `Config` class for loading configuration settings from the `config.yaml` file.
+*   `config/config.yaml`: YAML file containing configuration parameters for the application, such as database credentials, server IP, port, and logging settings.
+*   `src/commands/accountManager.py`: Implements the `AccountManager` class, which handles database interactions for managing bank accounts.
+*   `src/database/database.py`: Defines the `Database` class for managing the MySQL database connection.
+*   `src/server.py`: Contains the `TCPServer` class, which handles client connections, receives commands, and processes them using the `AccountManager`.
+*   `src/main.py`: The main entry point of the application, responsible for initializing the server and starting the main event loop.
+*   `utils/logging_config.py`: Provides the `setup_logging` function for configuring the application's logging.
+*   `README.md`: Provides an overview of the project.
+
+## Configuration
+
+The application uses a `config.yaml` file to store configuration settings. Here's an example of the configuration file:
+
+```yaml
+bank:
+  ip: "10.147.18.126"
+  port: "65525"
+  timeout: "5"
+
+db:
+  host: "localhost"
+  user: "root"
+  password: ""
+  database: "p2p_bank"
+
+logging:
+  level: "INFO"
+  file: "app.log"
+```
+
+*   `bank`: Contains settings related to the TCP server, such as the IP address, port, and client timeout.
+*   `db`: Contains database connection settings, such as the host, user, password, and database name.
+*   `logging`: Configures the logging level and file path.
+
+## Dependencies
+
+The project uses the following Python libraries:
+
+*   `logging`: For logging application events.
+*   `re`: For regular expressions, used in input validation.
+*   `socket`: For network communication.
+*   `datetime`: For handling date and time.
+*   `multiprocessing`: For handling multiple client connections concurrently.
+*   `typing`: For type hinting.
+*   `mysql.connector`: For connecting to the MySQL database.
+*   `yaml`: For parsing the YAML configuration file.
+
+You can install the dependencies using pip:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Setup
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone [repository_url]
+    cd [repository_directory]
+    ```
+
+2.  **Install dependencies:**
+
+    ```bash
+    pip install mysql-connector-python pyyaml
+    ```
+
+3.  **Configure the database:**
+
+    *   Create a MySQL database named `p2p_bank`.
+    *   Update the database credentials in `config/config.yaml`.
+    *   Run the SQL script to create the `accounts` table:
+
+        ```sql
+        -- Vytvoření databáze pro P2P bankovní systém
+        CREATE DATABASE IF NOT EXISTS p2p_bank;
+        USE p2p_bank;
+
+        -- Tabulka pro bankovní účty
+        CREATE TABLE IF NOT EXISTS accounts (
+          account_number INT NOT NULL AUTO_INCREMENT,   -- will auto-generate value
+          bank_code      VARCHAR(15) NOT NULL,
+          balance        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+          created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (account_number)
+        ) AUTO_INCREMENT = 10000;
+        ```
+
+4.  **Configure the server:**
+
+    *   Update the server IP and port in `config/config.yaml`.
+
+## Running the Server
+
+To start the server, execute the `src/main.py` script:
+
+```bash
+python src/main.py
+```
+
+The server will listen for incoming connections on the configured IP address and port.
+
+## Usage
+
+Once the server is running, clients can connect to it and send commands to perform banking operations. The following commands are supported:
+
+*   `DATE`: Returns the current date and time.
+*   `HELP`: Returns a list of available commands.
+*   `BC`: Returns the bank code (server IP).
+*   `AC`: Creates a new account and returns the account number and bank code.
+*   `AD account_number/ip_address amount`: Deposits the specified amount into the account.
+*   `AW account_number/ip_address amount`: Withdraws the specified amount from the account.
+*   `AB account_number/ip_address`: Returns the account balance.
+*   `AR account_number/ip_address`: Removes the account.
+*   `BA`: Returns the total amount of money in the bank.
+*   `BN`: Returns the number of accounts in the bank.
+
+## Logging
+
+The application uses the `logging` module to log events to a file. The logging level and file path can be configured in the `config.yaml` file.
+
+## Error Handling
+
+The application includes error handling to catch exceptions and log error messages. This helps in debugging and maintaining the system.
+
+## Future Enhancements
+
+*   Implement more robust error handling and input validation.
+*   Add support for user authentication and authorization.
+*   Implement transaction logging and auditing.
+*   Add a graphical user interface (GUI) for clients.
+*   Implement unit tests to ensure code quality.
+
+## Author
+
+Tadeas Pirich
+```
+
+I've included sections for:
+
+*   **Overview:** A brief description of the project.
+*   **File Structure:**  A breakdown of the important files and their roles.
+*   **Configuration:** Explains the `config.yaml` and its settings.
+*   **Dependencies:** Lists the required Python packages.
+*   **Setup:** Step-by-step instructions for setting up the project.
+*   **Running the Server:**  How to start the server.
+*   **Usage:**  Explains the available commands.
+*   **Logging:**  Describes the logging functionality.
+*   **Error Handling:** Mentions the error handling in the application.
+*   **Future Enhancements:** Ideas for improving the project.
+*   **Author:** Your name.
+
+This `README.md` should give anyone a good starting point for understanding and using your P2P banking system. Let me know if you'd like me to make any changes or add more details!
