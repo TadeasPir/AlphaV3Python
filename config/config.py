@@ -16,6 +16,25 @@ class Config:
     @property
     def ip(self):
         return self._config['bank']['ip']
+    @property
+    def client_timeout(self):
+        return self._config['bank']['timeout']
+
+    @property
+    def host(self):
+        return self._config['db']['host']
+
+    @property
+    def user(self):
+        return self._config['db']['user']
+
+    @property
+    def password(self):
+        return self._config['db']['password']
+
+    @property
+    def database(self):
+        return self._config['db']['database']
 
     @property
     def port(self):

@@ -1,0 +1,14 @@
+bank:
+  ip: "10.147.18.126"
+  port: "65525"
+  timeout: "60"
+
+db:
+  host: "localhost"
+  user: "root"
+  password: ""
+  database: "p2p_bank"
+
+logging:
+  level: "INFO"
+  file: "app.log"
