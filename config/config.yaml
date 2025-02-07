@@ -1,7 +1,7 @@
 bank:
   ip: "10.147.18.126"
   port: "65525"
-  timeout: "5"
+  timeout: "50"
 
 db:
   host: "localhost"

@@ -61,8 +61,7 @@ class TCPServer:
 
     def handle_bc(self, parts: list) -> str:
         """Return bank code information (here, the server IP)."""
-        return "BC "+ self.server_ip
-
+        return "BC " + self.server_ip
 
     def handle_account_create(self, parts: list) -> str:
         """
@@ -114,11 +113,13 @@ class TCPServer:
                 return "Error: Amount must be positive."
         except ValueError:
             return "Error: Invalid amount format."
+        print(account_info)
+        current_balance = self.handle_account_balance(["ab",account_info["account_number"]+"/"+account_info["bank_code"]])
+        print(current_balance)
+        tempor = current_balance.strip().split()
 
-        current_balance = self.handle_account_balance(account_info["bank_code"],account_info["account_number"])
-
-        if amount <= current_balance:
-            new_balance = amount - current_balance
+        if amount <=  int(tempor[1]):
+            new_balance = int(tempor[1]) - amount
             manager = AccountManager(
                 bank_code=account_info["bank_code"],
                 account_number=account_info["account_number"],
@@ -130,6 +131,7 @@ class TCPServer:
         else:
             return "Error: Amount exceeds current balance."
 
+
     def handle_account_balance(self, parts: list) -> str:
         """
         Command handler for the AB command.
@@ -137,6 +139,7 @@ class TCPServer:
         This function parses the command, retrieves the account, and returns
         the balance.
         """
+        print(parts)
         if len(parts) != 2:
             return "Error: AB command requires parameter: account_number/ip_address"
 
@@ -177,13 +180,17 @@ class TCPServer:
             return ("Error: Invalid account string format. Expected format: number/ip_address")
 
         try:
-            # Instantiate AccountManager with the provided account information.
+
             manager = AccountManager(
                 bank_code=account_info["bank_code"],
                 account_number=account_info["account_number"]
             )
-            # Assume AccountManager defines a delete method to remove an account.
-            if self.handle_account_balance(account_info["bank_code"], account_info["account_number"]) == 0:
+
+            current_balance = self.handle_account_balance(
+                ["ab", account_info["account_number"] + "/" + account_info["bank_code"]])
+            tempor = current_balance.strip().split()
+            print(tempor[1])
+            if int(tempor[1]) == 0:
                 manager.delete()
                 logging.info("Account removed: %s", account_info)
                 return "AR"
@@ -198,7 +205,12 @@ class TCPServer:
         return "BA "+str(AccountManager.find_balance(self.server_ip))
 
     def handle_bank_number(self, parts: list) -> str:
+
         return "BN "+ str(AccountManager.all())
+
+    def handle_bank_code(self) -> str:
+        """Return bank code information (here, the server IP)."""
+        return self.server_ip
 
 
     def parse_account_number(self,account_str: str) -> Tuple[bool, Optional[dict]]:
