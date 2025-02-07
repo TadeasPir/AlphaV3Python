@@ -89,7 +89,7 @@ pip install -r requirements.txt
 2.  **Install dependencies:**
 
     ```bash
-    pip install mysql-connector-python pyyaml
+    pip install -r requirements.txt
     ```
 
 3.  **Configure the database:**
