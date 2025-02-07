@@ -162,4 +162,3 @@ The application includes error handling to catch exceptions and log error messag
 ## Author
 
 Tadeas Pirich
-```
