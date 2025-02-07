@@ -74,7 +74,7 @@ The project uses the following Python libraries:
 You can install the dependencies using pip:
 
 ```bash
-pip install mysql-connector-python pyyaml
+pip install -r requirements.txt
 ```
 
 ## Setup
@@ -89,7 +89,7 @@ pip install mysql-connector-python pyyaml
 2.  **Install dependencies:**
 
     ```bash
-    pip install mysql-connector-python pyyaml
+    pip install -r requirements.txt
     ```
 
 3.  **Configure the database:**
